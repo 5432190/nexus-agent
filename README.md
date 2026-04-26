@@ -1,6 +1,6 @@
-# nexus-agent
+﻿# nexus-agent
 
-## 🚀 Local Development
+## ðŸš€ Local Development
 
 ### Fixed Wallet Generation Script
 ```bash
@@ -18,7 +18,7 @@ Path.home().joinpath('.nexus/wallet.pem').write_bytes(pem)
 " && chmod 600 ~/.nexus/wallet.pem
 ```
 
-### ⚠️ Platform Notes
+### âš ï¸ Platform Notes
 
 **Windows Users**: Run in WSL2 or Git Bash. Native Windows support is not currently guaranteed.
 ```bash
@@ -27,7 +27,7 @@ wsl
 # Then follow Linux instructions above
 ```
 
-### 🔧 Troubleshooting
+### ðŸ”§ Troubleshooting
 
 **If `pytest` fails**:
 ```bash
