@@ -1,7 +1,8 @@
-"""Secure file helpers and atomic persistence utilities for Nexus Agent."""
+﻿"""Secure file helpers and atomic persistence utilities for Nexus Agent."""
 
 from __future__ import annotations
 
+import sys
 import json
 from pathlib import Path
 from tempfile import NamedTemporaryFile
@@ -22,11 +23,13 @@ def load_json_secure(path: Path, *, require_mode: int | None = None) -> Any:
         raise FileNotFoundError(f"Secure JSON file not found: {path}")
 
     if require_mode is not None:
-        actual_mode = path.stat().st_mode & 0o777
-        if actual_mode != require_mode:
-            raise PermissionError(
-                f"File {path} must be chmod {oct(require_mode)}, found {oct(actual_mode)}"
-            )
+        # FIX: Skip strict chmod check on Windows (uses ACLs, not Unix modes)
+        if sys.platform != "win32":
+            actual_mode = path.stat().st_mode & 0o777
+            if actual_mode != require_mode:
+                raise PermissionError(
+                    f"File {path} must be chmod {oct(require_mode)}, found {oct(actual_mode)}"
+                )
 
     return json.loads(path.read_text(encoding="utf-8"))
 
