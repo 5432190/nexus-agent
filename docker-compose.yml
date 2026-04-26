@@ -1,0 +1,43 @@
+services:
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    env_file:
+      - .env
+    volumes:
+      - config:/config:ro
+      - wallet:/wallet:ro
+      - audit:/audit
+    tmpfs:
+      - /tmp
+      - /run
+    profiles:
+      - dev
+      - staging
+    command: ["/bin/sh", "-c", "chmod 600 /wallet/key.pem || true && python -m nexus_agent"]
+    healthcheck:
+      test: ["CMD", "/app/healthcheck.sh"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 10s
+    read_only: true
+    security_opt:
+      - no-new-privileges:true
+    cap_drop:
+      - ALL
+    # Uncomment and configure depends_on when postgres or redis services are added:
+    # depends_on:
+    #   postgres:
+    #     condition: service_healthy
+    #   redis:
+    #     condition: service_healthy
+
+volumes:
+  config:
+    driver: local
+  wallet:
+    driver: local
+  audit:
+    driver: local

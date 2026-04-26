@@ -1,0 +1,128 @@
+name: Deploy
+
+on:
+  push:
+    tags:
+      - 'v*'
+
+jobs:
+  staging:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: 3.12
+      - name: Set up Terraform
+        uses: hashicorp/setup-terraform@v2
+        with:
+          terraform_version: 1.6.7
+      - name: Authenticate to GCP
+        uses: google-github-actions/auth@v2
+        with:
+          credentials_json: ${{ secrets.GCP_SA_STAGING }}
+      - name: Configure Terraform environment
+        run: |
+          export TF_VAR_project_id="${{ secrets.GCP_PROJECT_ID }}"
+          export TF_VAR_region="${{ secrets.GCP_REGION }}"
+          export TF_VAR_env="staging"
+          export TF_VAR_image_tag="${{ github.sha }}"
+          export TF_VAR_wallet_pem="${{ secrets.WALLET_PEM }}"
+          export TF_VAR_config_secret_data="${{ secrets.CONFIG_SECRET_DATA }}"
+          terraform init -input=false
+          terraform validate
+          terraform plan -out=tfplan
+      - name: Upload Terraform plan
+        uses: actions/upload-artifact@v4
+        with:
+          name: tfplan-staging
+          path: tfplan
+      - name: Apply Terraform plan
+        run: terraform apply -input=false tfplan
+      - id: export_service_url
+        name: Export service URL
+        run: |
+          echo "service_url=$(terraform output -raw service_url)" >> $GITHUB_OUTPUT
+      - name: Create deployment status
+        uses: actions/github-script@v7
+        env:
+          SERVICE_URL: ${{ steps.export_service_url.outputs.service_url }}
+        with:
+          script: |
+            const serviceUrl = process.env.SERVICE_URL;
+            const deployment = await github.rest.repos.createDeployment({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              ref: process.env.GITHUB_REF,
+              required_contexts: [],
+              environment: 'staging'
+            });
+            await github.rest.repos.createDeploymentStatus({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              deployment_id: deployment.data.id,
+              state: 'success',
+              environment_url: serviceUrl
+            });
+
+  production:
+    runs-on: ubuntu-latest
+    environment: production
+    steps:
+      - uses: actions/checkout@v4
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: 3.12
+      - name: Set up Terraform
+        uses: hashicorp/setup-terraform@v2
+        with:
+          terraform_version: 1.6.7
+      - name: Authenticate to GCP
+        uses: google-github-actions/auth@v2
+        with:
+          credentials_json: ${{ secrets.GCP_SA_PROD }}
+      - name: Configure Terraform environment
+        run: |
+          export TF_VAR_project_id="${{ secrets.GCP_PROJECT_ID }}"
+          export TF_VAR_region="${{ secrets.GCP_REGION }}"
+          export TF_VAR_env="production"
+          export TF_VAR_image_tag="${{ github.sha }}"
+          export TF_VAR_wallet_pem="${{ secrets.WALLET_PEM }}"
+          export TF_VAR_config_secret_data="${{ secrets.CONFIG_SECRET_DATA }}"
+          terraform init -input=false
+          terraform validate
+          terraform plan -out=tfplan
+      - name: Upload Terraform plan
+        uses: actions/upload-artifact@v4
+        with:
+          name: tfplan-production
+          path: tfplan
+      - name: Apply Terraform plan
+        run: terraform apply -input=false tfplan
+      - id: export_service_url
+        name: Export service URL
+        run: |
+          echo "service_url=$(terraform output -raw service_url)" >> $GITHUB_OUTPUT
+      - name: Create deployment status
+        uses: actions/github-script@v7
+        env:
+          SERVICE_URL: ${{ steps.export_service_url.outputs.service_url }}
+        with:
+          script: |
+            const serviceUrl = process.env.SERVICE_URL;
+            const deployment = await github.rest.repos.createDeployment({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              ref: process.env.GITHUB_REF,
+              required_contexts: [],
+              environment: 'production'
+            });
+            await github.rest.repos.createDeploymentStatus({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              deployment_id: deployment.data.id,
+              state: 'success',
+              environment_url: serviceUrl
+            });
