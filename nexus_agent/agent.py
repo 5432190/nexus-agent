@@ -146,15 +146,15 @@ class NexusAgent:
         payload = dict(intent.params)
         payload["merchant_id"] = intent.merchant_id
 
-        self._commerce.initialize()
+                self._commerce.initialize()
         try:
             purchase_response = await self._commerce.purchase(payload)
+            # Compute signature BEFORE close() wipes the key
+            signature = self._commerce._wallet.sign_payload(
+                json.dumps(payload, sort_keys=True).encode("utf-8")
+            ).hex()
         finally:
             await self._commerce.close()
-
-        signature = self._commerce._wallet.sign_payload(
-            json.dumps(payload, sort_keys=True).encode("utf-8")
-        ).hex()
 
         audit_entry = AuditEntry(
             timestamp=datetime.utcnow().isoformat() + "Z",
