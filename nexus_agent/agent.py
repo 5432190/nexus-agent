@@ -146,7 +146,7 @@ class NexusAgent:
         payload = dict(intent.params)
         payload["merchant_id"] = intent.merchant_id
 
-                self._commerce.initialize()
+        self._commerce.initialize()
         try:
             purchase_response = await self._commerce.purchase(payload)
             # Compute signature BEFORE close() wipes the key

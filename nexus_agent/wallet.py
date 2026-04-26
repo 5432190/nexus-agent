@@ -1,6 +1,7 @@
-"""Wallet signing implementation for Nexus Agent."""
+﻿"""Wallet signing implementation for Nexus Agent."""
 
 from __future__ import annotations
+import sys
 
 from pathlib import Path
 from typing import Protocol
@@ -15,14 +16,9 @@ from .exceptions import WalletError
 class SigningBackend(Protocol):
     """Protocol for a signing backend."""
 
-    def initialize(self) -> None:
-        ...
-
-    def sign(self, data: bytes) -> bytes:
-        ...
-
-    def close(self) -> None:
-        ...
+    def initialize(self) -> None: ...
+    def sign(self, data: bytes) -> bytes: ...
+    def close(self) -> None: ...
 
 
 class Ed25519Backend:
@@ -37,7 +33,8 @@ class Ed25519Backend:
             raise WalletError(f"Signing key file not found: {self._key_path}")
 
         file_mode = self._key_path.stat().st_mode & 0o777
-        if file_mode != 0o600:
+        # FIX: Skip strict chmod check on Windows (uses ACLs, not Unix modes)
+        if sys.platform != "win32" and file_mode != 0o600:
             raise WalletError(
                 f"Signing key file must be chmod 600, found {oct(file_mode)}"
             )
