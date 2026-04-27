@@ -1,4 +1,4 @@
-"""Orchestration agent for Nexus Agent purchase flow."""
+﻿"""Orchestration agent for Nexus Agent purchase flow."""
 
 from __future__ import annotations
 
@@ -149,13 +149,11 @@ class NexusAgent:
         self._commerce.initialize()
         try:
             purchase_response = await self._commerce.purchase(payload)
-        finally:
-            await self._commerce.close()
-
         signature = self._commerce._wallet.sign_payload(
             json.dumps(payload, sort_keys=True).encode("utf-8")
         ).hex()
-
+        finally:
+            await self._commerce.close()
         audit_entry = AuditEntry(
             timestamp=datetime.utcnow().isoformat() + "Z",
             transaction_id=str(purchase_response.get("transaction_id", "")),
@@ -169,3 +167,4 @@ class NexusAgent:
 
         self._audit.append(audit_entry)
         return purchase_response
+
