@@ -1,18 +1,17 @@
-__pycache__/
-*.py[cod]
-.pytest_cache/
-.mypy_cache/
-.venv/
-venv/
+﻿# Secrets & env
 .env
 .env.*
-# Temporary helper scripts
-add_stripe.py
-create_test.py
-*.bak
+*.pem
+*.key
 
-# Python cache
+# Local state
+.nexus/
 __pycache__/
 *.pyc
-*.pyo
 .pytest_cache/
+
+# Temp
+fix_*.py
+patch_*.py
+demo_proof.txt
+pilot_email.txt
