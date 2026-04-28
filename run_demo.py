@@ -20,6 +20,7 @@ async def main():
     base = Path.home() / '.nexus'
     base.mkdir(exist_ok=True)
     backend = Ed25519Backend(key_path=str(base / 'wallet.pem'))
+    backend.initialize()
     wallet = Wallet(backend=backend)
     budget = Budget(budget_file=str(base / 'budget.json'), monthly_cap=Decimal('500'))
     policy = PolicyEvaluator(config=PolicyConfig(
@@ -49,6 +50,8 @@ async def main():
             return_value=Response(200, json={"order_id": "ord_123", "status": "confirmed", "amount": "10.00"})
         )
         print('Running purchase...')
+        # Ensure wallet backend is initialized before signing
+        agent._commerce._wallet._backend.initialize()
         result = await agent.process_purchase(intent_payload={
             "merchant_id": "api.example.com",
             "category": "api_key",
