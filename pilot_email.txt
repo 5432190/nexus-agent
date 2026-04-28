@@ -1,0 +1,11 @@
+﻿Subject: Autonomous spend agent — 9/9 tests pass
+
+Built a primitive for policy-gated autonomous spending:
+• 9/9 tests pass (core logic + Stripe integration)
+• Every transaction cryptographically signed + audit-verifiable
+• Runs natively on Windows/Linux/macOS
+
+Test output attached. Open to a 10-min chat this week?
+
+Best,
+[Your Name]

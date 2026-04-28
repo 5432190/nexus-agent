@@ -1,4 +1,4 @@
-"""Tests for StripeTool integration."""
+﻿"""Tests for StripeTool integration."""
 import pytest
 from decimal import Decimal
 from unittest.mock import AsyncMock, patch
@@ -22,7 +22,7 @@ async def test_stripe_charge_success(tmp_path):
     rl = TokenBucket(rate=10, capacity=10)
     tool = StripeTool(api_key="sk_test_mock", wallet=wallet, rate_limiter=rl)
     
-    with patch.object(tool._client.payment_intents, "create", new_callable=AsyncMock) as mock_create:
+    with patch.object(tool._client.v1.payment_intents, "create", new_callable=AsyncMock) as mock_create:
         mock_create.return_value = type("obj", (object,), {"status": "succeeded", "id": "pi_123"})()
         result = await tool.charge(Decimal("1.00"), "cus_test", "Test charge")
         assert result["status"] == "succeeded"
@@ -47,8 +47,9 @@ async def test_stripe_charge_amount_in_cents(tmp_path):
     rl = TokenBucket(rate=10, capacity=10)
     tool = StripeTool(api_key="sk_test_mock", wallet=wallet, rate_limiter=rl)
     
-    with patch.object(tool._client.payment_intents, "create", new_callable=AsyncMock) as mock_create:
+    with patch.object(tool._client.v1.payment_intents, "create", new_callable=AsyncMock) as mock_create:
         mock_create.return_value = type("obj", (object,), {"status": "succeeded", "id": "pi_456"})()
         await tool.charge(Decimal("2.50"), "cus_test", "Test charge")
         call_kwargs = mock_create.call_args.kwargs
         assert call_kwargs["amount"] == 250
+
