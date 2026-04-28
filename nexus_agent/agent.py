@@ -149,11 +149,16 @@ class NexusAgent:
         self._commerce.initialize()
         try:
             purchase_response = await self._commerce.purchase(payload)
+        except Exception:
+            raise
+        finally:
+            await self._commerce.close()
+        
+        # Sign the payload for audit (after commerce call completes)
         signature = self._commerce._wallet.sign_payload(
             json.dumps(payload, sort_keys=True).encode("utf-8")
         ).hex()
-        finally:
-            await self._commerce.close()
+
         audit_entry = AuditEntry(
             timestamp=datetime.utcnow().isoformat() + "Z",
             transaction_id=str(purchase_response.get("transaction_id", "")),
